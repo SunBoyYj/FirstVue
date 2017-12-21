@@ -8,27 +8,8 @@
       </div>
       <div class="city"><a href="#" class="city-content">城市</a><i class="iconfont">&#xe62d;</i></div>
     </header>
-
-    <swiper :options="swiperOption">
-      <swiper-slide v-for="item in swiperInfo" :key="item.id">
-        <div class="swiper-img-con">
-          <img  class="swiper-img" :src="'../../../static/image/'+item.imgUrl+''"/>
-        </div>
-      </swiper-slide>
-      <div class="swiper-pagination"  slot="pagination"></div>
-    </swiper>
-
-    <swiper>
-      <swiper-slide v-for="(pageInfo, index) in pages" :key="index">
-        <div class="icon-wrapper">
-          <div v-for="item in pageInfo" :key="item.id" class="icon-item">
-            <div class="icon-img-con">
-              <img  class="icon-img" :src="'../../../static/image/'+item.imgUrl+''"/>
-            </div>
-          </div>
-        </div>
-      </swiper-slide>
-    </swiper>
+    <img-swiper :swiperInfo="swiperInfo"></img-swiper>
+    <icon-swiper :pages="pages"></icon-swiper>
     <main class="main">
       <ul id="list1">
         <li>
@@ -40,7 +21,7 @@
           <span>5折泡温泉</span>
         </li>
       </ul>
-
+      
       <ul id="list2">
         <li class="list2Item" v-for="item in list1Info">
           <div class="listText">
@@ -61,27 +42,39 @@
           </div>
         </li>
       </ul>
-
-      <div id="hot">
-        <h2>热销推荐</h2>
-        <ul>
-          <li v-for="item in hotInfo" :key="item.id">
-            <div class="hotImg"><img :src="'../../../static/image/'+item.imgUrl+''"></div>
-            <div class="hotText">
-              <h3>{{item.tit}}</h3>
-              <h4>{{item.des}}</h4>
-              <h5><i>{{item.price}}</i>起</h5>
-            </div>
-          </li>
-        </ul>
+      <hot :hotInfo="hotInfo"></hot>
+      <div class="weekends">
+        <h2 class="weekTittle">周末去哪儿</h2>
+        <!-- <scroller class="weekend-con" :data="getWeekends"> -->
+          <div v-for="(item, index) in getWeekends" class="weekendsCon">
+            <a href="javascript:;">
+              <div class="pictureBox">
+                <img :src="item.imgUrl" alt="" class="picture">
+              </div>
+              <div class="weekendsInco">
+                <div class="placename">{{item.place}}</div>
+                <div class="description">{{item.description}}</div>
+              </div>
+            </a>
+          </div>
+        <!-- </scroller> -->
       </div>
     </main>
   </div>
 </template>
 
 <script>
+import hot from './hot'
+import imgSwiper from './imgSwiper'
+import iconSwiper from './iconSwiper'
 export default {
   name: 'Index',
+
+  components: {
+    hot,
+    imgSwiper,
+    iconSwiper
+  },
 
   data () {
     return {
@@ -90,6 +83,7 @@ export default {
       list2Info: [],
       list1Info: [],
       hotInfo: [],
+      getWeekends: [],
       swiperOption: {
         autoplay: 10000,
         pagination: '.swiper-pagination',
@@ -113,40 +107,23 @@ export default {
   },
 
   methods: {
-    handleSwiperDate () {
-      this.$http.get('/static/index.json')
-          .then(this.handleSwiperDateSucc.bind(this))
+    handleIndexDate () {
+      this.$http.get('/api/index.json')
+          .then(this.handleIndexDateSucc.bind(this))
     },
 
-    handleSwiperDateSucc (res) {
+    handleIndexDateSucc (res) {
       this.swiperInfo = res.body.data.swiper
       this.iconInfo = res.body.data.icons
-    },
-
-    handleList2Data () {
-      this.$http.get('/static/index.json')
-        .then(this.handleList2DataSucc.bind(this))
-    },
-
-    handleList2DataSucc (res) {
+      this.getWeekends = res.body.data.weekends
       this.list1Info = res.body.data.list1
       this.list2Info = res.body.data.list2
-    },
-
-    handleHotData () {
-      this.$http.get('/static/index.json')
-        .then(this.handleHotDataSucc.bind(this))
-    },
-
-    handleHotDataSucc (res) {
       this.hotInfo = res.body.data.hotsight
     }
   },
 
   created: function () {
-    this.handleSwiperDate()
-    this.handleList2Data()
-    this.handleHotData()
+    this.handleIndexDate()
   }
 }
 </script>
@@ -192,33 +169,6 @@ export default {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  .swiper-img-con {
-    overflow: hidden;
-    width: 100%;
-    height: 0;
-    padding-bottom: 31.25%;
-    /*防止抖屏，将高度设置为零，加一个padding-bottom 比例为高度/宽度*/
-  }
-  .swiper-img {
-    width: 100%;
-  }
-  .icon-wrapper {
-
-  }
-  .icon-item {
-    box-sizing: border-box;
-    float: left;
-    width: 25%;
-    padding: .4rem;
-  }
-  .icon-img-con {
-    width: 100%;
-    height: 0;
-    padding-bottom: 100%;
-  }
-  .icon-img {
-    width: 100%;
   }
   .main{
     background-color: #f5f5f5;
@@ -320,58 +270,45 @@ export default {
   .listImg {
     width: 100%;
   }
-  #hot h2{
-    margin-left: 0.32rem;
-    height: 1.2rem;
-    line-height: 1.2rem;
-    font-size: 0.4rem;
+  .weekendsCon{
+    background: #fff;
+  }
+  .weekTittle{
+    height: .8rem;
+    line-height: .8rem;
     color: #212121;
+    padding-left: .26rem;
   }
-  #hot ul li{
-    padding-top: 0.33rem;
-    background-color: #fff;
-    position: relative;
-    height: 2.76rem;
-  }
-  #hot ul li::after{
-    content:"";
-    width:100%;
-    height:1px;
-    background:#e0e0e0;
-    position:absolute;
-    bottom:0;
-    transform:scaleY(0.5);
-    transform-origin:left bottom;
-  }
-  .hotImg{
-    width: 2.1rem;
-    height: 2.1rem;
-    float: left;
-    margin: 0 0.33rem ;
-  }
-  .hotImg img{
+  .pictureBox{
     width: 100%;
-    height: 100%;
-  }
-  .hotText h3{
-    font-size: 0.42rem;
-    color: #212121;
-  }
-  .hotText h4{
-    width: 56%;
-    white-space: nowrap;
+    height: 0;
     overflow: hidden;
+    padding-bottom: 38%;
+  }
+  .picture{
+    width: 100%;
+  }
+  .weekendsInco{
+    padding: .14rem .2rem .2rem .2rem;
+  }
+  .placename{
+    overflow: hidden;
+    color: #212121;
+    font-size: .28rem;
+    line-height: .48rem;
+    white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: 0.38rem;
-    color: #9e9e9e;
-    margin: 0.3rem 0 0.4rem;
   }
-  .hotText h5{
-    font-size: 0.32rem;
-    color: #9e9e9e;
+  .description{
+    overflow: hidden;
+    color: #616161;
+    font-size: .24rem;
+    line-height: .42rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
-  .hotText h5 i{
-    font-size: 0.38rem;
-    color: #ef8a33;
+  .weekend-con {
+    height: 6rem;
+    overflow: hidden;
   }
 </style>
